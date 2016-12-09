@@ -2,35 +2,37 @@
 #include <string>
 #include <fstream>
 
-bool input(double** &matrix, double* &vector, int& N, double& epsilon, int& MLI);
+bool input();
+bool createAB();
+bool calculateJacobi();
 
-bool createAB(double** &matrix, double* &vector, int N);
 
-void writeMatrix(double** iMatrix,double* iVector, double** alfa, double* beta, int N);
+double ** initialMatrix = nullptr;
+double * initialVector = nullptr;
+
+double ** alfa = nullptr;
+double * beta = nullptr;
+
+int N = 0;
+int MLI = 0;
+double epsilon = 0.0f;
+
+//funkcja testowa
+void writeMatrix(double ** m,double* v,std::string title);
+
 
 int main(int argc, char* argv[])
 {
-	double **matrix= nullptr;
-	double *vector=nullptr;
-
-	double epsilon;
-	int N, MLI;
-
-	input(matrix, vector, N, epsilon, MLI);
-	 
-	//zapisujemy wejsciowy uklad rownan dla raportu koncowego
-	 double** initialMatrix = matrix;
-	 double* initialVector = vector;
-
-
-	if (createAB(matrix, vector, N))
+	input();
+	writeMatrix(initialMatrix, initialVector, "initial");
+	if (createAB())
 	{
 		std::cout << "macierz poprawna" << std::endl;
-		writeMatrix(initialMatrix, initialVector, matrix, vector, N);
+		writeMatrix(alfa,beta,"AB");
 	}
 
-	if(vector)
-	delete[]vector;
+//	if()
+//	delete[]vector;
 	//if (matrix)
 	//for (int i = 0; i < N; ++i)
 //	{
@@ -40,25 +42,24 @@ int main(int argc, char* argv[])
 	char c;
 		std::cin >> c;
 	return 0;
-
 }
 
 
 
-bool input(double ** &matrix, double* &vector, int& N, double& epsilon, int& MLI)
+bool input()
 {
 	//wczytywanie danych od usera
 	std::cout << "Podaj N rozmiar maciezry i wektora: ";
 	std::cin >> N;
 
 	//tworzenie macierzy i wektora
-	matrix = new double *[N];
+	initialMatrix = new double *[N];
 	for (int i = 0; i < N; ++i)
-		matrix[i] = new double[N];
+		initialMatrix[i] = new double[N];
 	
-	vector = new double[N];
+	initialVector = new double[N];
 
-	if (!matrix || !vector)
+	if (!initialMatrix || !initialVector)
 		return false;
 
 	// wczytywnanie z pliku
@@ -70,10 +71,10 @@ bool input(double ** &matrix, double* &vector, int& N, double& epsilon, int& MLI
 	{
 		for (int i = 0; i < N; ++i)
 			for (int j = 0; j < N; ++j)
-				file >> matrix[i][j];
+				file >> initialMatrix[i][j];
 
 		for (int i = 0; i < N; ++i)
-			file >> vector[i];
+			file >> initialVector[i];
 
 		file.close();
 	}
@@ -89,12 +90,12 @@ bool input(double ** &matrix, double* &vector, int& N, double& epsilon, int& MLI
 	return true;
 }
 
-bool createAB(double** &matrix, double* &vector, int N)
+bool createAB()
 {
 	//sprawdzanie dzielenia przez zero
 	for (int i = 0; i < N; ++i)
 	{
-		if (matrix[i][i] == 0.0f)
+		if (initialMatrix[i][i] == 0.0f)
 		{
 			std::cout << std::endl << "Z³a macierz, dzielenie przez zero w " << i << "," << i << std::endl;
 			return false;
@@ -102,13 +103,13 @@ bool createAB(double** &matrix, double* &vector, int N)
 	}
 
 	//tworzymy macierz Alfa
-	double ** alfa = new double *[N];
+	alfa = new double *[N];
 	for (int i = 0; i < N ; ++i)
 	{
-		alfa[i] = new double[N + 1];
+		alfa[i] = new double[N];
 	}
 	//tworzymy wektor Beta
-	double *beta = new double[N];
+	beta = new double[N];
 	//obl alfe
 	for(int i=0;i<N;++i)
 		for (int j = 0; j < N; ++j)
@@ -116,41 +117,41 @@ bool createAB(double** &matrix, double* &vector, int N)
 			if (i == j)
 				alfa[i][j] = 0;
 			else
-				alfa[i][j] = - (matrix[i][j] / matrix[i][i]);
+				alfa[i][j] = - (initialMatrix[i][j] / initialMatrix[i][i]);
 		}
 	//obl bete
 	for (int i = 0; i < N; ++i)
-		 beta[i]= vector[i] / matrix[i][i];
-
-	//zamieniamy otrzymane matrix i vector na nowo wyliczone Alfe i Bete
-	vector = beta;
-	matrix = alfa;
+		 beta[i]= initialVector[i] / initialMatrix[i][i];
 
 	return true;
 }
 
-
-
-
-void writeMatrix( double** iMatrix, double* iVector, double** alfa, double* beta, int N)
+bool calculateJacobi()
 {
+	
+	double* prevX=new double[N];
+	double* X=new double[N];
+	std::copy(beta, beta + N, prevX);
+	std::copy(beta, beta + N, X);
+
+
+
+	return false;
+}
+
+
+void writeMatrix(double** m,double* v,std::string title)
+{
+	std::cout << title << std::endl;
 	for (int i = 0; i < N; ++i)
 	{
 		std::cout << "| ";
 		for (int j = 0; j < N; ++j)
 		{
-			std::cout << iMatrix[i][j]<<"  ";
+			std::cout << m[i][j]<<"  ";
 		}
-		std::cout << " |  | " << iVector[i]<<std::endl;
+		std::cout << " |  | " << v[i]<<std::endl;
 	}
 	std::cout << "----------------"<<std::endl;
-	for (int i = 0; i < N; ++i)
-	{
-		std::cout << "| ";
-		for (int j = 0; j < N; ++j)
-		{
-			std::cout << alfa[i][j] << "  ";
-		}
-		std::cout << " |  | " <<beta[i]<<std::endl;
-	}
+
 }
