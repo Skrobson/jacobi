@@ -2,10 +2,13 @@
 #include <string>
 #include <fstream>
 #include <cmath>
+#include <vector>
 
 bool input();
 bool createAB();
 bool calculateJacobi();
+
+bool analyze();
 
 
 double ** initialMatrix = nullptr;
@@ -146,13 +149,17 @@ bool calculateJacobi()
 		norm = 0;
 		++iterrations;
 		std::copy(X,X + N, prevX);
-		//std::fill_n(X, N, 0);
+		
 		for (int i = 0; i < N; ++i)
 		{
 			X[i] = beta[i];
 			for (int j = 0; j < N; ++j)
 			{
-				X[i] += alfa[i][j] * prevX[j];
+				if (i != j) // tego warunku nie jestem pewien
+				{
+					X[i] += alfa[i][j] * prevX[j];
+				}
+				
 				//std::cout << X[i] << "=" << alfa[i][j] << "*" << prevX[j]<<std::endl;
 			}
 			//obliczanie norm
@@ -174,6 +181,12 @@ bool calculateJacobi()
 	for (int i = 0; i < N; ++i)
 		std::cout << prevX[i] << "	" << X[i] << std::endl;
 	
+	return false;
+}
+
+bool analyze()
+{
+	double a1;
 	return false;
 }
 
