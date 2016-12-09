@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <cmath>
 
 bool input();
 bool createAB();
@@ -23,14 +24,18 @@ void writeMatrix(double ** m,double* v,std::string title);
 
 int main(int argc, char* argv[])
 {
-	input();
-	writeMatrix(initialMatrix, initialVector, "initial");
-	if (createAB())
+	if (input())
 	{
-		std::cout << "macierz poprawna" << std::endl;
-		writeMatrix(alfa,beta,"AB");
-	}
+		writeMatrix(initialMatrix, initialVector, "initial");
+		if (createAB())
+		{
+			std::cout << "macierz poprawna" << std::endl;
+			writeMatrix(alfa, beta, "AB");
+		}
 
+		calculateJacobi();
+
+	}
 //	if()
 //	delete[]vector;
 	//if (matrix)
@@ -131,11 +136,44 @@ bool calculateJacobi()
 	
 	double* prevX=new double[N];
 	double* X=new double[N];
-	std::copy(beta, beta + N, prevX);
+	
 	std::copy(beta, beta + N, X);
+	int iterrations = 0;
+	bool stop=false;
+	double norm;
+	do
+	{
+		norm = 0;
+		++iterrations;
+		std::copy(X,X + N, prevX);
+		//std::fill_n(X, N, 0);
+		for (int i = 0; i < N; ++i)
+		{
+			X[i] = beta[i];
+			for (int j = 0; j < N; ++j)
+			{
+				X[i] += alfa[i][j] * prevX[j];
+				//std::cout << X[i] << "=" << alfa[i][j] << "*" << prevX[j]<<std::endl;
+			}
+			//obliczanie norm
+			norm += abs(X[i] - prevX[i]);
+			
+		}
+		//test
+		//std::cout << "iteracja: " << iterrations<<std::endl;
+		//for (int i = 0; i < N; ++i)
+		//	std::cout << prevX[i] << "	" << X[i] << std::endl;
 
-
-
+		//warunek stopu
+		norm /= N;
+		//std::cout <<"norma: "<< norm << std::endl;
+		//std::cout <<"epsilon: "<< epsilon << std::endl;
+	} while (iterrations < MLI && norm >= epsilon);
+	//test
+	std::cout << "iteracja: " << iterrations<<std::endl;
+	for (int i = 0; i < N; ++i)
+		std::cout << prevX[i] << "	" << X[i] << std::endl;
+	
 	return false;
 }
 
