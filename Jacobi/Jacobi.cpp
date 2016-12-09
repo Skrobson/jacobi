@@ -3,12 +3,17 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
+#include <algorithm>
+#include <conio.h>
 
 bool input();
 bool createAB();
 bool calculateJacobi();
+void output(double* prevX, double* X,int iter);
 
-bool analyze();
+void analyze( double* X);
+
+std::string inFile;
 
 
 double ** initialMatrix = nullptr;
@@ -22,18 +27,21 @@ int MLI = 0;
 double epsilon = 0.0f;
 
 //funkcja testowa
-void writeMatrix(double ** m,double* v,std::string title);
+//void writeMatrix(double ** m,double* v,std::string title);
 
 
 int main(int argc, char* argv[])
 {
+	std::cout.precision(10);
+	std::cout.setf(std::ios::scientific, std::ios::floatfield);
+	
 	if (input())
 	{
-		writeMatrix(initialMatrix, initialVector, "initial");
+		//writeMatrix(initialMatrix, initialVector, "initial");
 		if (createAB())
 		{
 			std::cout << "macierz poprawna" << std::endl;
-			writeMatrix(alfa, beta, "AB");
+			//writeMatrix(alfa, beta, "AB");
 		}
 
 		calculateJacobi();
@@ -47,8 +55,8 @@ int main(int argc, char* argv[])
 //		delete[] *matrix;
 //	}
 //	delete[] matrix;
-	char c;
-		std::cin >> c;
+	std::cout << "Wcisnij dowolny klawisz";
+	_getch();
 	return 0;
 }
 
@@ -72,9 +80,8 @@ bool input()
 
 	// wczytywnanie z pliku
 	std::cout << std::endl << "Podaj sciezke do pliku: ";
-	std::string filename;
-	std::cin >> filename;
-	std::fstream file(filename, std::ios::in);
+	std::cin >> inFile;
+	std::fstream file(inFile, std::ios::in);
 	if (file.good())
 	{
 		for (int i = 0; i < N; ++i)
@@ -155,42 +162,155 @@ bool calculateJacobi()
 			X[i] = beta[i];
 			for (int j = 0; j < N; ++j)
 			{
-				if (i != j) // tego warunku nie jestem pewien
+				/*if (i != j) // tego warunku nie jestem pewien
 				{
 					X[i] += alfa[i][j] * prevX[j];
-				}
+				}*/
+				X[i] += alfa[i][j] * prevX[j];
 				
-				//std::cout << X[i] << "=" << alfa[i][j] << "*" << prevX[j]<<std::endl;
 			}
 			//obliczanie norm
 			norm += abs(X[i] - prevX[i]);
 			
 		}
-		//test
-		//std::cout << "iteracja: " << iterrations<<std::endl;
-		//for (int i = 0; i < N; ++i)
-		//	std::cout << prevX[i] << "	" << X[i] << std::endl;
-
+	
 		//warunek stopu
 		norm /= N;
-		//std::cout <<"norma: "<< norm << std::endl;
-		//std::cout <<"epsilon: "<< epsilon << std::endl;
+		
 	} while (iterrations < MLI && norm >= epsilon);
 	//test
-	std::cout << "iteracja: " << iterrations<<std::endl;
+	/*std::cout << "iteracja: " << iterrations<<std::endl;
+	std::cout << "norm: " << norm << std::endl;
 	for (int i = 0; i < N; ++i)
-		std::cout << prevX[i] << "	" << X[i] << std::endl;
-	
-	return false;
+		std::cout << prevX[i] << "	" << X[i] << std::endl;*/
+	output(prevX, X, iterrations);
+	analyze( X);
+	return true;
 }
 
-bool analyze()
+void output(double* prevX, double* X,int iter)
 {
-	double a1;
-	return false;
+	std::string outFile;
+	int pos=inFile.find_last_of('.');
+	outFile = inFile.substr(0,pos+1);
+	outFile += "raport.txt";
+	std::fstream file(outFile, std::ios::out | std::ios::trunc);
+	file.precision(10);
+	file.setf(std::ios::scientific, std::ios::floatfield);
+	file << "poczatkowy uklad" << std::endl;
+	for (int i = 0; i < N; ++i)
+	{
+		file << "| ";
+		for (int j = 0; j < N; ++j)
+		{
+			file << initialMatrix[i][j] << "  ";
+		}
+		file << " |  | " << initialVector[i] << std::endl;
+	}
+	file << "----------------" << std::endl;
+	file << "Alfa i Beta" << std::endl;
+	for (int i = 0; i < N; ++i)
+	{
+		file << "| ";
+		for (int j = 0; j < N; ++j)
+		{
+			file << alfa[i][j] << "  ";
+		}
+		file << " |  | " << beta[i] << std::endl;
+	}
+	file << "----------------" << std::endl;
+	file << "wektor przedostatnio wykonanej iteracji" << std::endl;
+	for (int i = 0; i < N; ++i)
+	{
+		file << prevX[i]<<"	" ;
+	}
+	file << std::endl;
+	file << "wektor ostatnio wykonanej iteracji" << std::endl;
+	for (int i = 0; i < N; ++i)
+	{
+		file << X[i]<<"	";
+	}
+	file << std::endl;
+	file <<"liczba iteracji:"<<iter<< std::endl;
+
+	file.close();
 }
 
+void analyze( double* X)
+{
+	std::string outFile;
+	int pos = inFile.find_last_of('.');
+	outFile = inFile.substr(0, pos + 1);
+	outFile += "analiza.txt";
+	std::fstream file(outFile, std::ios::out | std::ios::trunc);
+	file.precision(10);
+	file.setf(std::ios::scientific, std::ios::floatfield);
 
+	//zbieznosc
+	std::vector<double> tempVector;
+	double a(0);
+	for (int i = 0; i < N; ++i)
+	{
+		a = 0;
+		for (int j = 0; j < N; ++j)
+		{
+			a += abs(alfa[i][j]);
+		}
+		tempVector.push_back(a);
+	}
+	auto max = std::max_element(tempVector.begin(), tempVector.end());
+	if (*max < 1)
+		file << "Uklad zbiezny" << std::endl;
+	else
+	{
+		tempVector.clear();
+	for (int j = 0; j < N; ++j)
+	{
+		a = 0;
+		for (int i = 0; i < N; ++i)
+		{
+			a += alfa[i][j];
+		}
+		tempVector.push_back(a);
+	}
+	auto max = std::max_element(tempVector.begin(), tempVector.end());
+	if (*max < 1)
+		file << "Uklad  zbiezny" << std::endl;
+		else 
+		{
+			a = 0;
+			for (int i = 0; i < N; ++i)
+			{
+				for (int j = 0; j < N; ++j)
+				{
+					a += pow(alfa[i][j], 2);
+				}
+				a = sqrt(a);
+				if(a<1)
+					file << "Uklad zbiezny" << std::endl;
+				
+				else
+					file << "Uklad nie jest zbiezny" << std::endl;
+				
+			}
+		}
+	}	
+
+	//blad bezwzgledny
+	double precise[] = { 1,1,0,-1,-1 };
+	std::vector<double> dVector;
+	for (int i = 0; i < N; ++i)
+		dVector.push_back(abs(precise[i] - X[i]));
+	
+	file << "blad bezwzgledny: "<<std::endl;
+	for (auto deltaX : dVector)
+	{
+		file << deltaX<<"	"<<std::endl;
+	}
+	file.close();
+}
+
+/*
 void writeMatrix(double** m,double* v,std::string title)
 {
 	std::cout << title << std::endl;
@@ -205,4 +325,4 @@ void writeMatrix(double** m,double* v,std::string title)
 	}
 	std::cout << "----------------"<<std::endl;
 
-}
+}*/
