@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <conio.h>
+#include <iomanip>
 
 bool input();
 bool createAB();
@@ -42,9 +43,10 @@ int main(int argc, char* argv[])
 		{
 			std::cout << "macierz poprawna" << std::endl;
 			//writeMatrix(alfa, beta, "AB");
+			calculateJacobi();
 		}
 
-		calculateJacobi();
+	
 
 	}
 	if(initialVector)
@@ -200,44 +202,41 @@ void output(double* prevX, double* X,int iter)
 	outFile = inFile.substr(0,pos+1);
 	outFile += "raport.txt";
 	std::fstream file(outFile, std::ios::out | std::ios::trunc);
-	file.precision(10);
-	file.setf(std::ios::scientific, std::ios::floatfield);
-	file << "poczatkowy uklad" << std::endl;
+
+	file << "poczatkowy uklad liniowy" << std::endl;
 	for (int i = 0; i < N; ++i)
 	{
 		file << "| ";
 		for (int j = 0; j < N; ++j)
 		{
-			file << initialMatrix[i][j] << "  ";
+			file <<std::setw(5) << std::right <<initialMatrix[i][j];
 		}
-		file << " |  | " << initialVector[i] << std::endl;
+		file << " |  | " << std::setw(5) << std::right << initialVector[i] << std::endl;
 	}
 	file << "----------------" << std::endl;
+	
 	file << "Alfa i Beta" << std::endl;
 	for (int i = 0; i < N; ++i)
 	{
 		file << "| ";
 		for (int j = 0; j < N; ++j)
 		{
-			file << alfa[i][j] << "  ";
+			file  << std::setw(10) << std::right << alfa[i][j] ;
 		}
-		file << " |  | " << beta[i] << std::endl;
+		file << " |  | " << std::setw(5) << std::right << beta[i] << std::endl;
 	}
 	file << "----------------" << std::endl;
-	file << "wektor przedostatnio wykonanej iteracji" << std::endl;
+	file.precision(10);
+	file.setf(std::ios::scientific, std::ios::floatfield);
+	file << "wektor przedostatnio wykonanej iteracji   |   wektor ostatnio wykonanej iteracji" << std::endl;
 	for (int i = 0; i < N; ++i)
 	{
-		file << prevX[i]<<"	" ;
+		file <<"X"<<i+1<<" "<< prevX[i]<<"	|	" << X[i]<<std::endl;
 	}
-	file << std::endl;
-	file << "wektor ostatnio wykonanej iteracji" << std::endl;
-	for (int i = 0; i < N; ++i)
-	{
-		file << X[i]<<"	";
-	}
-	file << std::endl;
-	file <<"liczba iteracji:"<<iter<< std::endl;
-
+	file <<"liczba iteracji: "<<iter<< std::endl;
+	file.unsetf(std::ios::scientific);
+	file.precision(4);
+	file << "epsilon: " << epsilon;
 	file.close();
 }
 
