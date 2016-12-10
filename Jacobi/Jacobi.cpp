@@ -47,14 +47,25 @@ int main(int argc, char* argv[])
 		calculateJacobi();
 
 	}
-//	if()
-//	delete[]vector;
-	//if (matrix)
-	//for (int i = 0; i < N; ++i)
-//	{
-//		delete[] *matrix;
-//	}
-//	delete[] matrix;
+	if(initialVector)
+	delete[]initialVector;
+	if (initialMatrix)
+	{
+		for (int i = 0; i < N; ++i)
+		{
+			delete[]  initialMatrix[i];
+		}
+	}
+	delete[] initialMatrix;
+	if (beta)
+		delete[] beta;
+	if (alfa)
+	{
+		for (int i = 0; i < N; ++i)
+		{
+			delete[]  alfa[i];
+		}
+	}
 	std::cout << "Wcisnij dowolny klawisz";
 	_getch();
 	return 0;
@@ -116,7 +127,6 @@ bool createAB()
 			return false;
 		}
 	}
-
 	//tworzymy macierz Alfa
 	alfa = new double *[N];
 	for (int i = 0; i < N ; ++i)
@@ -151,8 +161,7 @@ bool calculateJacobi()
 	int iterrations = 0;
 	bool stop=false;
 	double norm;
-	do
-	{
+	do{
 		norm = 0;
 		++iterrations;
 		std::copy(X,X + N, prevX);
@@ -166,17 +175,13 @@ bool calculateJacobi()
 				{
 					X[i] += alfa[i][j] * prevX[j];
 				}*/
-				X[i] += alfa[i][j] * prevX[j];
-				
+				X[i] += alfa[i][j] * prevX[j];		
 			}
-			//obliczanie norm
+			//obliczanie normy
 			norm += abs(X[i] - prevX[i]);
-			
 		}
-	
 		//warunek stopu
-		norm /= N;
-		
+		norm /= N;	
 	} while (iterrations < MLI && norm >= epsilon);
 	//test
 	/*std::cout << "iteracja: " << iterrations<<std::endl;
@@ -290,12 +295,10 @@ void analyze( double* X)
 					file << "Uklad zbiezny" << std::endl;
 				
 				else
-					file << "Uklad nie jest zbiezny" << std::endl;
-				
+					file << "Uklad nie jest zbiezny" << std::endl;		
 			}
 		}
 	}	
-
 	//blad bezwzgledny
 	double precise[] = { 1,1,0,-1,-1 };
 	std::vector<double> dVector;
