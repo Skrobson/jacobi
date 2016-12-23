@@ -240,7 +240,7 @@ void output(double* prevX, double* X,int iter)
 	file.close();
 }
 
-void analyze( double* X)
+void analyze(double* X)
 {
 	std::string outFile;
 	int pos = inFile.find_last_of('.');
@@ -250,6 +250,7 @@ void analyze( double* X)
 	file.precision(10);
 	file.setf(std::ios::scientific, std::ios::floatfield);
 
+	bool concurrence = false;
 	//zbieznosc
 	std::vector<double> tempVector;
 	double a(0);
@@ -263,24 +264,27 @@ void analyze( double* X)
 		tempVector.push_back(a);
 	}
 	auto max = std::max_element(tempVector.begin(), tempVector.end());
+	file << "Normy:" << std::endl;
+	file << "Norma I: "<<*max << std::endl;
 	if (*max < 1)
-		file << "Uklad zbiezny" << std::endl;
-	else
+		concurrence = true;
+	
 	{
 		tempVector.clear();
-	for (int j = 0; j < N; ++j)
-	{
-		a = 0;
-		for (int i = 0; i < N; ++i)
+		for (int j = 0; j < N; ++j)
 		{
-			a += alfa[i][j];
+			a = 0;
+			for (int i = 0; i < N; ++i)
+			{
+				a += abs(alfa[i][j]);
+			}
+			tempVector.push_back(a);
 		}
-		tempVector.push_back(a);
-	}
-	auto max = std::max_element(tempVector.begin(), tempVector.end());
-	if (*max < 1)
-		file << "Uklad  zbiezny" << std::endl;
-		else 
+		auto max = std::max_element(tempVector.begin(), tempVector.end());
+		if (*max < 1)
+			concurrence = true;
+
+		file << "Norma II: " << *max << std::endl;
 		{
 			a = 0;
 			for (int i = 0; i < N; ++i)
@@ -289,27 +293,84 @@ void analyze( double* X)
 				{
 					a += pow(alfa[i][j], 2);
 				}
-				a = sqrt(a);
-				if(a<1)
-					file << "Uklad zbiezny" << std::endl;
 				
-				else
-					file << "Uklad nie jest zbiezny" << std::endl;		
 			}
+			a = sqrt(a);
+			if (a < 1)
+				concurrence = true;
+
+			file << "Norma III: " << a << std::endl;
 		}
-	}	
+		if (concurrence)
+			file << "Uklad zbiezny" << std::endl;
+		else
+			file << "Uklad nie jest  zbiezny" << std::endl;
+	}
 	//blad bezwzgledny
 	double precise[] = { 1,1,0,-1,-1 };
 	std::vector<double> dVector;
-	for (int i = 0; i < N; ++i)
-		dVector.push_back(abs(precise[i] - X[i]));
-	
-	file << "blad bezwzgledny: "<<std::endl;
-	for (auto deltaX : dVector)
+	if (N == 5)
 	{
-		file << deltaX<<"	"<<std::endl;
+		for (int i = 0; i < 5; ++i)
+			dVector.push_back(abs(precise[i] - X[i]));
+
+		file << "blad bezwzgledny: " << std::endl;
+		for (auto deltaX : dVector)
+		{
+			file << deltaX << "	" << std::endl;
+		}
+
+
+
+/*
+		double tmp = 0;
+		double tmp2 = 0;
+		double norma1 = 0;
+		double norma2 = 0;
+		double norma3 = 0;
+
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < N; j++)
+			{
+				tmp += abs(alfa[i][j]);
+				norma3 += pow(alfa[i][j], 2);
+			}
+			if (tmp > norma1)
+			{
+				norma1 = tmp;
+			}
+
+			tmp = 0;
+		}
+		for (int j = 0; j < N; j++)
+		{
+			for (int i = 0; i < N; i++)
+			{
+				tmp2 += abs(alfa[i][j]);
+				if (tmp2 > norma2)
+				{
+					norma2 = tmp2;
+				}
+			}
+			tmp2 = 0;
+		}
+		norma3 = sqrt(norma3);
+
+		std::cout << std::endl << "normy macierzy:" << std::endl;
+		std::cout << "[A]I :  " << norma1 << std::endl;
+		std::cout << "[A]II : " << norma2 << std::endl;
+		std::cout << "[A]III : " << norma3 << std::endl;
+
+		if ((norma1 < 1) || (norma2 < 1) || (norma3 < 1))
+			std::cout << "Uklad jest zbiezny." << std::endl;
+		else
+			std::cout << "Warunek wystarczajacy nie zostal spelniony." << std::endl;
+
+*/
+
+
 	}
-	file.close();
 }
 
 /*
